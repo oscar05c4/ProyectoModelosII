@@ -1,4 +1,5 @@
 .kaggle/
+kaggle/
 
 # Generated datasets and model artifacts
 *.csv
