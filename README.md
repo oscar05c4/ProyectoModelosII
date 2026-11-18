@@ -154,9 +154,7 @@ from src import utils_piu
 ## Archivos generados
 
 El desarrollo puede generar modelos `.joblib`, tablas `.csv`, figuras,
-resultados y cachés de `joblib`. Estos artefactos están incluidos en
-`.gitignore` para evitar subir datos, resultados temporales o archivos
-dependientes del equipo.
+resultados y cachés de `joblib`.
 
 Los archivos de la competencia, especialmente `train.csv`, `test.csv`,
 `series_train.parquet` y `series_test.parquet`, deben descargarse mediante
