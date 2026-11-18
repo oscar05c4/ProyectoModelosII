@@ -1,11 +1,5 @@
-.kaggle/
+# Kaggle datasets
 kaggle/
 
-# Generated datasets and model artifacts
-*.csv
-*.joblib
-
 # Generated output directories
-figures/
-results/
 __pycache__/
