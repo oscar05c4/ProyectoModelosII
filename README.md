@@ -5,7 +5,7 @@ Proyecto de análisis y predicción del nivel de uso problemático de Internet
 
 ## Requisitos
 
-- Python 3.10 o superior.
+- Python 3.13.1.
 - VS Code con las extensiones **Python** y **Jupyter**, o un entorno equivalente
   para ejecutar notebooks.
 - Una cuenta de Kaggle.
@@ -19,7 +19,7 @@ Se recomienda crear un entorno virtual desde la raíz del repositorio:
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install kagglehub numpy pandas scipy scikit-learn joblib matplotlib
+python -m pip install -r requirements.txt
 ```
 
 Librerías utilizadas:
@@ -32,13 +32,12 @@ Librerías utilizadas:
   selección de hiperparámetros y modelos.
 - `joblib`: caché del preprocesamiento y serialización de modelos.
 - `matplotlib`: generación de figuras.
+- `umap-learn`: reducción de dimensión UMAP.
+- `pyarrow`: lectura del archivo de actigrafía en formato Parquet.
+- `ipykernel`: registro del entorno virtual como kernel de Jupyter.
 
-Si se ejecutan análisis adicionales de reducción no lineal con UMAP, instalar
-también:
-
-```powershell
-python -m pip install umap-learn
-```
+Las versiones exactas utilizadas y reproducibles están fijadas en
+`requirements.txt`.
 
 ## Autenticación y descarga de Kaggle
 
@@ -80,11 +79,12 @@ rutas absolutas al código.
 ProyectoModelosII/
 ├── notebooks/
 │   ├── Carga_Datos.ipynb
-│   └── Desarrollo.ipynb
+│   ├── Desarrollo.ipynb
+│   ├── results/          # tablas CSV y resultados de las mallas
+│   └── figures/          # figuras del informe 
 ├── src/
 │   └── utils_piu.py
-├── report/
-│   └── reporte.md
+├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
@@ -94,18 +94,27 @@ ProyectoModelosII/
 - `notebooks/Carga_Datos.ipynb`: inicia sesión en Kaggle y descarga la
   competencia. La variable `path` contiene la ruta local devuelta por
   `kagglehub`; no se debe reemplazar por una ruta absoluta personal.
-- `notebooks/Desarrollo.ipynb`: carga los datos, analiza las muestras sin
-  etiqueta, prepara las variables, entrena y compara los modelos.
+- `notebooks/Desarrollo.ipynb`: notebook principal con todo el desarrollo del
+  Entregable II, en este orden:
+  1. Carga y verificación de datos.
+  2. Separación del conjunto de test y esquema de validación.
+  3. Análisis del sesgo de selección de las muestras sin etiqueta.
+  4. Preprocesamiento (imputación KNN, escalado, indicadores de bloque) y
+     umbrales ordinales, con verificación de no fuga de información.
+  5. Modelo base y auditoría de predicciones por clase.
+  6. Búsqueda de hiperparámetros de cinco modelos (Ridge, KNN, Random Forest,
+     MLP y SVR), con intervalos de confianza.
+  7. Tratamiento del desbalance (pesos por clase) y comparación con
+     clasificación directa.
+  8. Reducción de dimensión: análisis individual de variables, PCA y UMAP.
+  9. Experimento de actigrafía (exclusión frente a imputación).
+  10. Evaluación final en test, matriz de confusión y tabla consolidada de
+      entrenamiento, validación y test.
+  11. Discusión y conclusiones.
 - `src/utils_piu.py`: contiene las clases personalizadas utilizadas por el
   notebook de desarrollo:
   - `BlockMissingIndicator`.
   - `OrdinalThresholdRegressor`.
-- `report/reporte.md`: espacio destinado a la documentación del informe.
-
-En `Desarrollo.ipynb` existe una celda comentada con `%%writefile` que muestra
-cómo crear `utils_piu.py` en un entorno como Google Colab, donde el archivo
-puede no existir todavía. En este repositorio el módulo fue creado de forma
-permanente en `src/utils_piu.py`, por lo que esa celda no necesita ejecutarse.
 
 ## Orden de ejecución
 
@@ -152,3 +161,66 @@ dependientes del equipo.
 Los archivos de la competencia, especialmente `train.csv`, `test.csv`,
 `series_train.parquet` y `series_test.parquet`, deben descargarse mediante
 Kaggle y no deben subirse al repositorio.
+
+## Resumen del proyecto
+
+Predicción del Severity Impairment Index (`sii`, ordinal de 0 a 3) a partir de
+biomarcadores físicos, mediciones fisiológicas y datos contextuales del Healthy
+Brain Network (Child Mind Institute). Se comparan cinco familias de modelos
+(Ridge, KNN, Random Forest, MLP y SVR) con regresión y umbrales ordinales que
+maximizan el QWK, y se evalúan PCA y UMAP como reducción de dimensión.
+
+
+## Resultados principales
+
+| Configuración | QWK validación (CV 5×3) | QWK test |
+|---|---|---|
+| SVR sin reducción (modelo seleccionado) | 0.456 [0.417, 0.494] | 0.444 [0.374, 0.513] |
+| SVR + PCA (k = 11) | 0.440 [0.395, 0.484] | 0.450 [0.378, 0.524] |
+| SVR + UMAP (3 comp.) | 0.371 [0.299, 0.443] | 0.439 [0.371, 0.507] |
+
+Tablas completas en `notebooks/results/` y figuras en `notebooks/figures/`.
+
+## Reproducibilidad
+
+- Semilla global `SEED = 42`. UMAP usa `random_state=SEED` y
+  `compatibility_layout=True`.
+- Versiones usadas: Python 3.13.1, kagglehub 1.0.3, NumPy 2.2.5,
+  pandas 2.3.2, SciPy 1.17.1, scikit-learn 1.8.0, joblib 1.5.3,
+  Matplotlib 3.11.2, umap-learn 0.6.0, pyarrow 21.0.0 e ipykernel 7.4.0.
+  Todas están fijadas en `requirements.txt`.
+
+### Dos formas de ejecutar el notebook
+
+1. **Rápida (recomendada para revisar):** con la carpeta `notebooks/results/` del
+   repositorio, las celdas de entrenamiento imprimen "ya existe, se omite" y
+   cargan los resultados guardados, por lo que el notebook se ejecuta en pocos
+   minutos.
+2. **Completa:** borrar `notebooks/results/`, `grid_*.csv`, `best_*.joblib` y
+   `notebooks/cache_prep/` y ejecutar todo. Las figuras se regeneran en
+   `notebooks/figures/`.
+
+Los archivos se escriben relativos al directorio del notebook
+(`notebooks/results/`, `notebooks/figures/`).
+
+## Datos de actigrafía
+
+`series_train.parquet` pesa varios GB y solo se lee en la sección 9 del
+notebook (experimento de actigrafía). El resto del notebook usa únicamente
+`train.csv`. Los agregados calculados se guardan en
+`notebooks/results/actigraphy_agg_tr_v2.csv`, así que la lectura se hace una sola vez.
+
+## Solución de problemas
+
+- **403 o "acepta las reglas" al descargar:** aceptar las condiciones de la
+  competencia en la web de Kaggle.
+- **`ModuleNotFoundError: src`:** abrir la carpeta raíz del repositorio en VS Code
+  (el notebook busca `src/utils_piu.py` hacia arriba desde su carpeta).
+- **Modelos `.joblib` antiguos:** se regeneran al ejecutar las mallas.
+- **Advertencias `Pandas4Warning`:** son informativas. Usar la versión de pandas
+  de `requirements.txt`.
+
+## Autores
+
+Xiomara Betancur Isaza y Oscar Albeiro Blandón Agudelo.
+Universidad de Antioquia, Modelos y Simulación de Sistemas II.

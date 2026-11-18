@@ -1,0 +1,6 @@
+Familia,Modelo,Malla de hiperparámetros,Fijos,Combinaciones,Mejor (QWK val)
+Paramétrico (regresión lineal regularizada),Ridge,"alpha ∈ [0.1, 1, 10, 100, 1000]",-,5,{'alpha': 100}
+No paramétrico,KNN,"n_neighbors ∈ [5, 15, 30, 60]; weights ∈ ['uniform', 'distance']",-,8,"{'n_neighbors': 30, 'weights': 'distance'}"
+Ensamble de árboles de decisión,RandomForest,"max_depth ∈ [5, 10, None]; min_samples_leaf ∈ [5, 20]",n_estimators=300,6,"{'max_depth': None, 'min_samples_leaf': 20}"
+Red neuronal artificial,MLP,"hidden_layer_sizes ∈ [(32,), (64, 32)]; alpha ∈ [0.001, 0.1, 10, 30, 100]","max_iter=500, early_stopping=True",10,"{'alpha': 10, 'hidden_layer_sizes': (64, 32)}"
+Máquina de vectores de soporte,SVR,"C ∈ [0.1, 1, 10]; epsilon ∈ [0.05, 0.1, 0.5]; gamma ∈ ['scale', 0.01]",kernel=rbf,18,"{'C': 1, 'epsilon': 0.05, 'gamma': 0.01}"

@@ -1,0 +1,4 @@
+modelo,%pred_0,%pred_1,%pred_2,%pred_3,recall_0,recall_1,recall_2,recall_3
+distribución real,58.3,26.7,13.8,1.2,,,,
+LogReg directo,47.8,23.1,22.7,6.4,0.631,0.308,0.477,0.296
+SVC directo,48.1,24.1,25.0,2.8,0.638,0.324,0.523,0.148
